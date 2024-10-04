@@ -11,6 +11,8 @@ namespace MyBird
         #endregion
         private void Update()
         {
+            if(GameManager.IsDeath)
+                return;
             MoveGround();
         }
         void MoveGround()

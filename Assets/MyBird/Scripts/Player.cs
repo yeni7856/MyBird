@@ -22,6 +22,10 @@ namespace MyBird
 
         //대기
         [SerializeField] private float readyForce = 1.0f;
+
+        //UI
+        public GameObject readyUI;
+        public GameObject gameoverUI;
         #endregion
 
         // Start is called before the first frame update
@@ -33,6 +37,10 @@ namespace MyBird
         // Update is called once per frame
         void Update()
         {
+            // 게임이 일시 정지된 상태라면 입력을 받지 않음
+            /*if (GameManager.IsPaused)
+                return;*/
+
             //키입력
             InputBird();
             /*if(Input.GetKeyDown(KeyCode.Space))
@@ -43,11 +51,11 @@ namespace MyBird
             //버드대기
             ReadyBird();
 
-            //버드 회전
+            // 버드 회전
             RotataeBird();
 
-            //버드 이동
-            move();
+            // 버드 이동
+            Move();
         }
 
         private void FixedUpdate()
@@ -61,17 +69,23 @@ namespace MyBird
                 KeyJump = false;
             }
         }
+        //키입력
         void InputBird()
         {
+            if (GameManager.IsDeath)
+                return; //죽으면 입력 그만 
+
             //점프키 입력 
             //스페이스바 또는 마우스 왼클릭 //누적
             KeyJump |= Input.GetKeyDown(KeyCode.Space);
             KeyJump |= Input.GetMouseButtonDown(0);
             if (GameManager.IsStart == false && KeyJump)
             {
-                GameManager.IsStart = true;
+                MoveStartBird();
             }
         }
+
+        //버드 점프
         void JumpBird()
         {
             //힘을 이용해서 위로 
@@ -80,9 +94,13 @@ namespace MyBird
             /*Quaternion targetRotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z + rotationAngle);
             transform.rotation = targetRotation;*/
         }
+
         //버드 회전
         void RotataeBird()
         {
+            // 게임이 시작되지 않았으면 회전하지 않음
+            if (!GameManager.IsStart)
+                return;
             //up + 30, down -90
             float degree = 0;
             if(rb2D.velocity.y > 0)
@@ -97,13 +115,16 @@ namespace MyBird
             birdRotation = new Vector3 (0f, 0f, rotZ);
             transform.eulerAngles = birdRotation;
         }
-        void move()
+
+        //움직이기
+        void Move()
         {
-            if (GameManager.IsStart == false)
+            if (GameManager.IsStart == false || GameManager.IsDeath == true)
                 return;
 
             transform.Translate(Vector3.right * moveSpeed * Time.deltaTime, Space.World);
         }
+        //레디
         void ReadyBird()
         {
             if (GameManager.IsStart) //시작하면 래디 안함.
@@ -112,6 +133,52 @@ namespace MyBird
             if(rb2D.velocity.y < 0f)
             {
                 rb2D.velocity = Vector2.up * readyForce;
+            }
+        }
+
+        //버드 죽기
+        void DeathBird()
+        {
+            // 2번 죽음 방지
+            if(GameManager.IsDeath)
+                return;
+            //Debug.Log("죽음 처리");
+            GameManager.IsDeath = true;
+            gameoverUI.SetActive(true);
+        }
+
+        //점수획득
+        void GetPoint()
+        {
+            if (GameManager.IsDeath)
+                return;
+            //Debug.Log("점수 획득");
+            GameManager.Score++;
+        }
+
+        void MoveStartBird()
+        {
+            GameManager.IsStart = true;
+            readyUI.SetActive(false);
+        }
+
+        private void OnTriggerEnter2D(Collider2D collider)
+        {
+            if(collider.tag == "Pipe")
+            {
+                DeathBird();
+            }
+            else if(collider.tag == "Point")
+            {
+                GetPoint();
+            }
+           //collision.gameObject.SetActive(false);
+        }
+        private void OnCollisionEnter2D(Collision2D collision)
+        {
+            if(collision.gameObject.tag == "Ground")
+            {
+                DeathBird();
             }
         }
     }
