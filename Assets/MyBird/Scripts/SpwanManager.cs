@@ -13,11 +13,12 @@ namespace MyBird
         private float count = 0f;
 
         [SerializeField] private float spwanTimerMax = 1.05f;
-        [SerializeField] private float spwanTimerMin = 0.8f;
+        [SerializeField] private float spwanTimerMin = 0.95f;
+        public static float levelTime = 0f;
 
         //스폰 위치
         [SerializeField] private float spwanMaxY = 3.5f;
-        [SerializeField] private float spwanMinY = 1.5f;
+        [SerializeField] private float spwanMinY = -1.5f;
         #endregion
 
         void Start ()
@@ -40,7 +41,8 @@ namespace MyBird
 
                 //초기화
                 //count = spwanTimer;
-                count = Random.Range(spwanTimerMin, spwanTimerMax);
+                //1.05f - 0.95f => 1.05f - 0.90f
+                count = Random.Range(spwanTimerMin, spwanTimerMax - levelTime); 
             }
             count -= Time.deltaTime;    
         }
